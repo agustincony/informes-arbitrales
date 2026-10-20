@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CASI – Rendimiento por Árbitro 2024·2025·2026</title>
+<style>
+  :root {
+    --bg: #07080f;
+    --bg2: #0f1120;
+    --bg3: #171929;
+    --border: #252840;
+    --casi-blue: #1a2e6e;
+    --casi-gold: #c8a832;
+    --win: #22c55e;
+    --win-bg: rgba(34,197,94,0.12);
+    --loss: #ef4444;
+    --loss-bg: rgba(239,68,68,0.12);
+    --draw: #f59e0b;
+    --draw-bg: rgba(245,158,11,0.12);
+    --text: #e8eaf0;
+    --text2: #8b90a8;
+    --text3: #555c7a;
+    --accent: #3b5fe8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #060a1a 0%, #0d1635 50%, #060a1a 100%);
+    border-bottom: 2px solid var(--casi-gold);
+    padding: 32px 24px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(59,95,232,0.15), transparent);
+    pointer-events:none;
+  }
+  .header-badge {
+    display:inline-block;
+    background: var(--casi-gold);
+    color:#07080f;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:3px;
+    padding:4px 14px;
+    border-radius:20px;
+    margin-bottom:12px;
+    text-transform:uppercase;
+  }
+  .header h1 { font-size:clamp(22px,4vw,38px); font-weight:900; letter-spacing:-1px; line-height:1.1; }
+  .header h1 span { color:var(--casi-gold); }
+  .header p { color:var(--text2); margin-top:8px; font-size:14px; }
+  .season-pills { display:flex; gap:8px; justify-content:center; margin-top:16px; flex-wrap:wrap; }
+  .s-pill {
+    background:var(--bg3); border:1px solid var(--border);
+    padding:4px 14px; border-radius:20px; font-size:12px; font-weight:700;
+    cursor:pointer; transition:.2s; color:var(--text2); user-select:none;
+  }
+  .s-pill:hover, .s-pill.active { background:var(--casi-blue); border-color:var(--accent); color:white; }
+  .s-pill.all.active { background:var(--casi-gold); border-color:var(--casi-gold); color:#07080f; }
+
+  /* TOTALES BANNER */
+  .totals-bar {
+    display:flex; gap:0; justify-content:center;
+    background:var(--bg2); border-bottom:1px solid var(--border);
+    flex-wrap:wrap;
+  }
+  .tot-item {
+    padding:14px 28px; text-align:center; border-right:1px solid var(--border); flex:1; min-width:100px;
+  }
+  .tot-item:last-child { border-right:none; }
+  .tot-num { font-size:26px; font-weight:900; line-height:1; }
+  .tot-lbl { font-size:11px; color:var(--text2); text-transform:uppercase; letter-spacing:1.5px; margin-top:3px; }
+  .tot-num.v { color:var(--win); }
+  .tot-num.d { color:var(--loss); }
+  .tot-num.e { color:var(--draw); }
+  .tot-num.pct { color:var(--casi-gold); }
+
+  /* FILTROS */
+  .filters { padding:20px 24px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .filter-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; }
+  .sort-btn {
+    background:var(--bg3); border:1px solid var(--border); color:var(--text2);
+    padding:6px 14px; border-radius:8px; font-size:12px; cursor:pointer; transition:.2s;
+  }
+  .sort-btn:hover, .sort-btn.active { border-color:var(--accent); color:white; background:rgba(59,95,232,0.15); }
+
+  /* GRID */
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; padding:20px 24px 40px; }
+
+  /* CARD */
+  .card {
+    background:var(--bg2); border:1px solid var(--border); border-radius:16px;
+    overflow:hidden; transition:.25s; cursor:default;
+  }
+  .card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 8px 32px rgba(59,95,232,0.15); }
+  .card.hidden { display:none; }
+
+  .card-head {
+    padding:18px 20px 14px;
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:14px;
+  }
+  .ref-avatar {
+    width:46px; height:46px; border-radius:12px;
+    background: linear-gradient(135deg, var(--casi-blue), var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px; font-weight:900; color:white; flex-shrink:0;
+    text-transform:uppercase;
+  }
+  .ref-info { flex:1; min-width:0; }
+  .ref-name { font-size:17px; font-weight:800; line-height:1.2; }
+  .ref-sub { font-size:11px; color:var(--text2); margin-top:2px; }
+
+  .record-badges { display:flex; gap:6px; margin-top:8px; }
+  .rbadge {
+    padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700;
+  }
+  .rbadge.v { background:var(--win-bg); color:var(--win); }
+  .rbadge.e { background:var(--draw-bg); color:var(--draw); }
+  .rbadge.d { background:var(--loss-bg); color:var(--loss); }
+
+  /* PCT BAR */
+  .pct-section { padding:14px 20px; border-bottom:1px solid var(--border); }
+  .pct-row { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .pct-lbl { font-size:11px; color:var(--text2); width:55px; flex-shrink:0; }
+  .pct-bar-wrap { flex:1; background:var(--bg3); border-radius:4px; height:7px; overflow:hidden; }
+  .pct-bar { height:100%; border-radius:4px; transition:.6s; }
+  .pct-bar.v { background:var(--win); }
+  .pct-bar.d { background:var(--loss); }
+  .pct-bar.e { background:var(--draw); }
+  .pct-val { font-size:11px; font-weight:700; width:36px; text-align:right; flex-shrink:0; }
+  .pct-val.v { color:var(--win); }
+  .pct-val.d { color:var(--loss); }
+  .pct-val.e { color:var(--draw); }
+
+  /* SEASON BREAKDOWN */
+  .seasons-section { padding:12px 20px; border-bottom:1px solid var(--border); }
+  .sez-title { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px; }
+  .sez-row { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+  .sez-year { font-size:11px; font-weight:700; color:var(--text2); width:36px; flex-shrink:0; }
+  .sez-dots { display:flex; gap:3px; flex:1; flex-wrap:wrap; }
+  .dot {
+    width:14px; height:14px; border-radius:3px; font-size:8px; font-weight:800;
+    display:flex; align-items:center; justify-content:center; color:rgba(0,0,0,0.7);
+    flex-shrink:0;
+  }
+  .dot.v { background:var(--win); }
+  .dot.e { background:var(--draw); }
+  .dot.d { background:var(--loss); }
+  .dot.none { background:transparent; color:var(--text3); font-size:10px; }
+  .sez-summary { font-size:10px; color:var(--text3); width:60px; text-align:right; flex-shrink:0; }
+
+  /* MATCHES LIST */
+  .matches-toggle {
+    padding:10px 20px; cursor:pointer; display:flex; align-items:center; justify-content:space-between;
+    color:var(--text2); font-size:11px; text-transform:uppercase; letter-spacing:1px;
+    transition:.2s; user-select:none;
+  }
+  .matches-toggle:hover { color:white; }
+  .toggle-arrow { transition:.3s; font-size:14px; }
+  .matches-list { display:none; padding:0 20px 16px; }
+  .matches-list.open { display:block; }
+  .match-item {
+    display:flex; align-items:center; gap:8px; padding:5px 0;
+    border-bottom:1px solid rgba(255,255,255,0.03); font-size:12px;
+  }
+  .match-item:last-child { border-bottom:none; }
+  .m-badge {
+    width:20px; height:20px; border-radius:4px; display:flex; align-items:center;
+    justify-content:center; font-size:9px; font-weight:900; flex-shrink:0;
+  }
+  .m-badge.v { background:var(--win-bg); color:var(--win); }
+  .m-badge.e { background:var(--draw-bg); color:var(--draw); }
+  .m-badge.d { background:var(--loss-bg); color:var(--loss); }
+  .m-year { font-size:10px; color:var(--text3); width:28px; flex-shrink:0; }
+  .m-rival { flex:1; font-weight:600; color:var(--text); }
+  .m-cond { font-size:9px; color:var(--text3); width:8px; }
+  .m-score { font-size:11px; font-weight:700; color:var(--text2); }
+  .m-score.win { color:var(--win); }
+  .m-score.loss { color:var(--loss); }
+  .m-score.draw { color:var(--draw); }
+  .m-fecha { font-size:9px; color:var(--text3); width:20px; text-align:right; flex-shrink:0; }
+
+  /* SEMIS TAG */
+  .semis-tag {
+    display:inline-block; background:rgba(200,168,50,0.15); color:var(--casi-gold);
+    font-size:9px; font-weight:700; padding:1px 5px; border-radius:3px; margin-left:4px;
+  }
+
+  /* FOOTER */
+  footer { text-align:center; padding:24px; color:var(--text3); font-size:11px; border-top:1px solid var(--border); }
+  footer span { color:var(--text2); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">Análisis Arbitral</div>
+    <h1>CASI · Rendimiento por <span>Árbitro</span></h1>
+    <p>Top 14 URBA · Temporadas 2024 · 2025 · 2026</p>
+  <div class="season-pills">
+    <span class="s-pill all active" onclick="filterSeason('all',this)">Todas las temporadas</span>
+    <span class="s-pill" onclick="filterSeason('2024',this)">2024</span>
+    <span class="s-pill" onclick="filterSeason('2025',this)">2025</span>
+    <span class="s-pill" onclick="filterSeason('2026',this)">2026</span>
+  </div>
+</div>
+
+<div class="totals-bar" id="totals-bar">
+  <div class="tot-item"><div class="tot-num" id="t-total">70</div><div class="tot-lbl">Partidos</div></div>
+  <div class="tot-item"><div class="tot-num v" id="t-wins">47</div><div class="tot-lbl">Victorias</div></div>
+  <div class="tot-item"><div class="tot-num e" id="t-draws">1</div><div class="tot-lbl">Empates</div></div>
+  <div class="tot-item"><div class="tot-num d" id="t-losses">22</div><div class="tot-lbl">Derrotas</div></div>
+  <div class="tot-item"><div class="tot-num pct" id="t-pct">67%</div><div class="tot-lbl">% Victorias</div></div>
+</div>
+
+<div class="filters">
+  <span class="filter-label">Ordenar:</span>
+  <button class="sort-btn active" onclick="sortCards('matches',this)">Más partidos</button>
+  <button class="sort-btn" onclick="sortCards('wins',this)">Victorias</button>
+  <button class="sort-btn" onclick="sortCards('pct',this)">% Victoria</button>
+  <button class="sort-btn" onclick="sortCards('name',this)">Nombre</button>
+</div>
+
+<div class="grid" id="main-grid">
+<!-- Cards generated by JS -->
+</div>
+
+<footer>
+  Datos: 2024 (F1–F22) · 2025 (F1–F22 + Semis) · 2026 (F1–F26) · <span>Club Atlético San Isidro</span>
+</footer>
+
+<script>
+const DATA = [
+  // [año, fecha, rival, condición, árbitro, favor, contra, resultado]
+  // 2024
+  [2024,1,'Biei','L','Cotic',30,27,'V'],
+  [2024,2,'Belgrano','V','Bertazza',12,14,'D'],
+  [2024,3,'Hindú','L','Deluca',44,8,'V'],
+  [2024,4,'San Luis','V','De Achaval',20,17,'V'],
+  [2024,5,'Regatas','L','Rossi',41,18,'V'],
+  [2024,6,'Alumni','L','Deluca',55,20,'V'],
+  [2024,7,'Cuba','V','Maio',11,11,'E'],
+  [2024,8,'Sic','L','Deluca',39,29,'V'],
+  [2024,9,'Champagnat','V','Houghton',28,23,'V'],
+  [2024,10,'Atl. Rosario','L','Maio',37,17,'V'],
+  [2024,11,'Newman','V','Deluca',14,37,'D'],
+  [2024,12,'Biei','V','Eusebio',53,24,'V'],
+  [2024,13,'Belgrano','L','Deluca',37,41,'D'],
+  [2024,14,'Hindú','V','Jauri Rivero',18,26,'D'],
+  [2024,15,'San Luis','L','Maio',44,21,'V'],
+  [2024,16,'Regatas','V','Houghton',24,30,'D'],
+  [2024,17,'Alumni','V','Schneider',25,37,'D'],
+  [2024,18,'Cuba','L','Bertazza',27,3,'V'],
+  [2024,19,'Sic','V','Bertazza',26,27,'D'],
+  [2024,20,'Champagnat','L','De Achaval',75,33,'V'],
+  [2024,21,'Atl. Rosario','V','Deluca',59,34,'V'],
+  [2024,22,'Newman','L','Bertazza',21,24,'D'],
+  // 2025
+  [2025,1,'Biei','V','Rossi',35,20,'V'],
+  [2025,2,'La Plata','L','Rizzo',51,11,'V'],
+  [2025,3,'Cuba','V','Cotic',34,9,'V'],
+  [2025,4,'Belgrano','L','Rossi',23,20,'V'],
+  [2025,5,'Alumni','V','De Achaval',29,22,'V'],
+  [2025,6,'San Luis','V','Federico',37,17,'V'],
+  [2025,7,'Regatas','L','Rossi',47,23,'V'],
+  [2025,8,'Sic','V','Bertazza',13,16,'D'],
+  [2025,9,'Los Tilos','L','Jauri Rivero',25,21,'V'],
+  [2025,10,'Newman','V','Deluca',8,22,'D'],
+  [2025,11,'Hindú','L','Maio',26,25,'V'],
+  [2025,12,'Biei','L','Cotic',55,15,'V'],
+  [2025,13,'La Plata','V','Eusebio',44,15,'V'],
+  [2025,14,'Cuba','L','Deluca',30,26,'V'],
+  [2025,15,'Belgrano','V','Bertazza',18,27,'D'],
+  [2025,16,'Alumni','L','Jauri Rivero',31,20,'V'],
+  [2025,17,'San Luis','L','Solda',25,24,'V'],
+  [2025,18,'Regatas','V','De Achaval',27,23,'V'],
+  [2025,19,'Sic','L','Deluca',33,29,'V'],
+  [2025,20,'Los Tilos','V','Jauri Rivero',19,18,'V'],
+  [2025,21,'Newman','L','Deluca',26,16,'V'],
+  [2025,22,'Hindú','V','Rossi',7,46,'D'],
+  [2025,'S','(Semis)','–','Deluca',9,13,'D'],
+  // 2026
+  [2026,1,'Champagnat','V','Houghton',40,16,'V'],
+  [2026,2,'Hindú','L','De Achaval',12,15,'D'],
+  [2026,3,'La Plata','V','Cotic',39,13,'V'],
+  [2026,4,'Regatas','L','Maio',38,14,'V'],
+  [2026,5,'Atl. Rosario','V','Houghton',36,31,'V'],
+  [2026,6,'Los Tilos','L','Federico',33,31,'V'],
+  [2026,7,'Los Matreros','V','Solda',48,24,'V'],
+  [2026,8,'Cuba','V','Bertazza',38,37,'V'],
+  [2026,9,'Biei','L','Deluca',39,25,'V'],
+  [2026,10,'Belgrano','V','Rossi',40,43,'D'],
+  [2026,11,'Sic','L','Jauri Rivero',23,26,'D'],
+  [2026,12,'Newman','V','Bertazza',28,37,'D'],
+  [2026,13,'Alumni','L','Deluca',28,23,'V'],
+  [2026,14,'Champagnat','L','Houghton',47,30,'V'],
+  [2026,15,'Hindú','V','Maio',29,8,'V'],
+  [2026,16,'La Plata','L','Solda',45,15,'V'],
+  [2026,17,'Regatas','V','Jauri Rivero',31,27,'V'],
+  [2026,18,'Atl. Rosario','L','Deluca',47,13,'V'],
+  [2026,19,'Los Tilos','V','Maio',15,33,'D'],
+  [2026,20,'Los Matreros','L','De Achaval',50,17,'V'],
+  [2026,21,'Cuba','L','Rossi',41,27,'V'],
+  [2026,22,'Biei','V','Cotic',27,26,'V'],
+  [2026,23,'Belgrano','L','Jauri Rivero',27,25,'V'],
+  [2026,24,'Sic','V','De Achaval',18,13,'V'],
+  [2026,25,'Newman','L','Deluca',27,37,'D'],
+  [2026,26,'Alumni','V','Rossi',22,14,'V'],
+];
+
+// Build referee map
+function buildRefMap(seasonFilter) {
+  const refs = {};
+  DATA.forEach(r => {
+    const [year, fecha, rival, cond, arb, fav, con, res] = r;
+    if (seasonFilter !== 'all' && String(year) !== seasonFilter) return;
+    if (!refs[arb]) refs[arb] = {name:arb, matches:[], seasons:{2024:[],2025:[],2026:[]}};
+    refs[arb].matches.push(r);
+    if (refs[arb].seasons[year] !== undefined) refs[arb].seasons[year].push(r);
+  });
+  return refs;
+}
+
+function stats(matches) {
+  let v=0,e=0,d=0;
+  matches.forEach(m => { if(m[7]==='V') v++; else if(m[7]==='E') e++; else d++; });
+  const total = v+e+d;
+  const pct = total ? Math.round(v/total*100) : 0;
+  return {v,e,d,total,pct};
+}
+
+function initials(name) {
+  return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+}
+
+let currentSeason = 'all';
+let currentSort = 'matches';
+
+function renderCards(season, sort) {
+  currentSeason = season;
+  currentSort = sort;
+  const refMap = buildRefMap(season);
+
+  // Compute totals
+  const allMatches = DATA.filter(r => season==='all' || String(r[0])===season);
+  const tot = stats(allMatches);
+  document.getElementById('t-total').textContent = tot.total;
+  document.getElementById('t-wins').textContent = tot.v;
+  document.getElementById('t-draws').textContent = tot.e;
+  document.getElementById('t-losses').textContent = tot.d;
+  document.getElementById('t-pct').textContent = tot.pct + '%';
+
+  // Sort refs
+  let refList = Object.values(refMap);
+  if (sort === 'matches') refList.sort((a,b) => b.matches.length - a.matches.length);
+  else if (sort === 'wins') refList.sort((a,b) => stats(b.matches).v - stats(a.matches).v);
+  else if (sort === 'pct') refList.sort((a,b) => stats(b.matches).pct - stats(a.matches).pct || b.matches.length - a.matches.length);
+  else refList.sort((a,b) => a.name.localeCompare(b.name));
+
+  const grid = document.getElementById('main-grid');
+  grid.innerHTML = '';
+
+  refList.forEach(ref => {
+    const st = stats(ref.matches);
+    if (st.total === 0) return;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.ref = ref.name;
+
+    // Season breakdown dots
+    let seasonsHTML = '';
+    const showYears = season === 'all' ? [2024,2025,2026] : [parseInt(season)];
+    showYears.forEach(yr => {
+      const yrMatches = ref.seasons[yr] || [];
+      if (season !== 'all' && yrMatches.length === 0) return;
+      const dots = yrMatches.length > 0
+        ? yrMatches.map(m => `<div class="dot ${m[7].toLowerCase()}" title="F${m[1]} vs ${m[2]} ${m[4]>m[5]?m[4]+'-'+m[5]:m[4]+'-'+m[5]}">${m[7]}</div>`).join('')
+        : `<div class="dot none">—</div>`;
+      const yrSt = stats(yrMatches);
+      const yrSum = yrMatches.length > 0 ? `${yrSt.v}V ${yrSt.d>0?yrSt.d+'D ':''} ${yrSt.e>0?yrSt.e+'E':''}` : '';
+      seasonsHTML += `
+        <div class="sez-row">
+          <div class="sez-year">${yr}</div>
+          <div class="sez-dots">${dots}</div>
+          <div class="sez-summary">${yrSum}</div>
+        </div>`;
+    });
+
+    // Matches list
+    const matchRows = ref.matches.map(m => {
+      const [yr, fecha, rival, cond, arb, fav, con, res] = m;
+      const scoreClass = res==='V'?'win':res==='D'?'loss':'draw';
+      const isS = fecha === 'S';
+      return `<div class="match-item">
+        <div class="m-badge ${res.toLowerCase()}">${res}</div>
+        <div class="m-year">${yr}</div>
+        <div class="m-rival">${rival}${isS?'<span class="semis-tag">SEMIS</span>':''}</div>
+        <div class="m-cond" title="${cond==='L'?'Local':'Visitante'}">${cond==='L'?'🏠':'✈'}</div>
+        <div class="m-score ${scoreClass}">${fav}–${con}</div>
+        <div class="m-fecha">F${fecha}</div>
+      </div>`;
+    }).join('');
+
+    // Win rate color
+    const rateColor = st.pct >= 70 ? '#22c55e' : st.pct >= 50 ? '#f59e0b' : '#ef4444';
+
+    card.innerHTML = `
+      <div class="card-head">
+        <div class="ref-avatar">${initials(ref.name)}</div>
+        <div class="ref-info">
+          <div class="ref-name">${ref.name}</div>
+          <div class="ref-sub">${st.total} partido${st.total!==1?'s':''} · ${st.pct}% victorias</div>
+          <div class="record-badges">
+            <span class="rbadge v">${st.v}V</span>
+            ${st.e > 0 ? `<span class="rbadge e">${st.e}E</span>` : ''}
+            <span class="rbadge d">${st.d}D</span>
+          </div>
+        </div>
+        <div style="font-size:24px;font-weight:900;color:${rateColor};flex-shrink:0;">${st.pct}%</div>
+      </div>
+      <div class="pct-section">
+        <div class="pct-row">
+          <span class="pct-lbl" style="color:var(--win)">Victoria</span>
+          <div class="pct-bar-wrap"><div class="pct-bar v" style="width:${st.pct}%"></div></div>
+          <span class="pct-val v">${st.pct}%</span>
+        </div>
+        <div class="pct-row">
+          <span class="pct-lbl" style="color:var(--loss)">Derrota</span>
+          <div class="pct-bar-wrap"><div class="pct-bar d" style="width:${st.total?Math.round(st.d/st.total*100):0}%"></div></div>
+          <span class="pct-val d">${st.total?Math.round(st.d/st.total*100):0}%</span>
+        </div>
+        ${st.e>0?`<div class="pct-row">
+          <span class="pct-lbl" style="color:var(--draw)">Empate</span>
+          <div class="pct-bar-wrap"><div class="pct-bar e" style="width:${Math.round(st.e/st.total*100)}%"></div></div>
+          <span class="pct-val e">${Math.round(st.e/st.total*100)}%</span>
+        </div>`:''}
+      </div>
+      <div class="seasons-section">
+        <div class="sez-title">Desglose por temporada</div>
+        ${seasonsHTML}
+      </div>
+      <div class="matches-toggle" onclick="toggleMatches(this)">
+        <span>Ver partidos</span><span class="toggle-arrow">▾</span>
+      </div>
+      <div class="matches-list">
+        ${matchRows}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function toggleMatches(el) {
+  const list = el.nextElementSibling;
+  const arrow = el.querySelector('.toggle-arrow');
+  list.classList.toggle('open');
+  arrow.style.transform = list.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+
+function filterSeason(season, el) {
+  document.querySelectorAll('.s-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderCards(season, currentSort);
+}
+
+function sortCards(sort, el) {
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderCards(currentSeason, sort);
+}
+
+renderCards('all','matches');
+</script>
+</body>
+</html>

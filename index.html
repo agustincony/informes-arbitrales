@@ -226,6 +226,8 @@
   <button class="sort-btn active" onclick="sortCards('matches',this)">Más partidos</button>
   <button class="sort-btn" onclick="sortCards('wins',this)">Victorias</button>
   <button class="sort-btn" onclick="sortCards('pct',this)">% Victoria</button>
+  <button class="sort-btn" onclick="sortCards('losses',this)">Derrotas</button>
+  <button class="sort-btn" onclick="sortCards('lsspct',this)">% Derrotas</button>
   <button class="sort-btn" onclick="sortCards('name',this)">Nombre</button>
 </div>
 
@@ -363,6 +365,8 @@ function renderCards(season, sort) {
   if (sort === 'matches') refList.sort((a,b) => b.matches.length - a.matches.length);
   else if (sort === 'wins') refList.sort((a,b) => stats(b.matches).v - stats(a.matches).v);
   else if (sort === 'pct') refList.sort((a,b) => stats(b.matches).pct - stats(a.matches).pct || b.matches.length - a.matches.length);
+  else if (sort === 'losses') refList.sort((a,b) => stats(b.matches).d - stats(a.matches).d);
+  else if (sort === 'lsspct') refList.sort((a,b) => { const sa=stats(a.matches), sb=stats(b.matches); return (sb.total?sb.d/sb.total:0) - (sa.total?sa.d/sa.total:0) || sb.matches.length - sa.matches.length; });
   else refList.sort((a,b) => a.name.localeCompare(b.name));
 
   const grid = document.getElementById('main-grid');
